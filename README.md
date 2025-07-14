@@ -14,7 +14,7 @@ astrbot积分系统插件，支持邀请好友、签到、兑换API Key等功能
 
 1. 克隆插件仓库到 `AstrBot/data/plugins` 目录：
    ```bash
-   git clone https://github.com/your-repo/astrbot_plugin_integral_system
+   git clone https://github.com/sllt-wei/astrbot_plugin_integral_system.git
 
 2. 启动AstrBot，在插件管理界面启用本插件。
 
