@@ -2,4 +2,4 @@ name: astrbot_plugin_integral_system
 author: sllt
 description: 积分系统插件，支持邀请好友、签到、兑换API Key等功能。
 version: 1.0.0
-repository: https://github.com/your-repo/astrbot_plugin_integral_system
+repository: https://github.com/sllt-wei/astrbot_plugin_integral_system.git
