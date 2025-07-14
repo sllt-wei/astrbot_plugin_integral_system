@@ -34,11 +34,15 @@ class IntegralSystem(Star):
             json.dump(data, f, ensure_ascii=False, indent=2)
 
 
+# ... existing code ...
 
-    @filter.message_type("text")  # 只监听文本消息
-    @filter.command("签到")  # 使用命令方式触发签到
+    @filter.message_handler()  # 监听所有消息
     async def sign_in(self, event: AstrMessageEvent):
         """签到功能"""
+        # 只处理包含"签到"二字的纯文本消息
+        if "签到" not in event.message_str or not event.message_str.strip() == "签到":
+            return
+            
         user_id = event.get_sender_id()
         if user_id not in self.users:
             self.users[user_id] = {"integral": 0, "last_sign_in": None}
@@ -54,6 +58,7 @@ class IntegralSystem(Star):
         self._save_json(self.users_file, self.users)
         yield event.plain_result(f"签到成功！获得10积分，当前积分：{self.users[user_id]['integral']}")
 
+# ... existing code ...
 
     @filter.group_member_added()
     async def member_join(self, event: AstrMessageEvent):
