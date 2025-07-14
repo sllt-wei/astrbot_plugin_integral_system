@@ -33,21 +33,27 @@ class IntegralSystem(Star):
         with open(file_path, "w", encoding="utf-8") as f:
             json.dump(data, f, ensure_ascii=False, indent=2)
 
-    @filter.message_contains("签到")
+
+
+    @filter.message_type("text")  # 只监听文本消息
+    @filter.command("签到")  # 使用命令方式触发签到
     async def sign_in(self, event: AstrMessageEvent):
         """签到功能"""
         user_id = event.get_sender_id()
         if user_id not in self.users:
             self.users[user_id] = {"integral": 0, "last_sign_in": None}
         
+        # 检查是否已签到
         if self.users[user_id].get("last_sign_in") == str(event.timestamp):
             yield event.plain_result("您今天已经签到过了！")
             return
         
+        # 签到奖励
         self.users[user_id]["integral"] += 10
         self.users[user_id]["last_sign_in"] = str(event.timestamp)
         self._save_json(self.users_file, self.users)
         yield event.plain_result(f"签到成功！获得10积分，当前积分：{self.users[user_id]['integral']}")
+
 
     @filter.group_member_added()
     async def member_join(self, event: AstrMessageEvent):
