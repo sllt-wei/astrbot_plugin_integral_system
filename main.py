@@ -33,16 +33,20 @@ class IntegralSystem(Star):
         with open(file_path, "w", encoding="utf-8") as f:
             json.dump(data, f, ensure_ascii=False, indent=2)
 
-
-# ... existing code ...
-
-    @filter.message_handler()  # 监听所有消息
+    # ✅ 使用 filter.all() 监听所有消息
+    @filter.all()
     async def sign_in(self, event: AstrMessageEvent):
-        """签到功能"""
-        # 只处理包含"签到"二字的纯文本消息
-        if "签到" not in event.message_str or not event.message_str.strip() == "签到":
+        """签到功能：用户发送“签到”即可获得积分"""
+        # 仅处理文本消息
+        if event.get_message_type() != "text":
             return
-            
+
+        message = event.message_str.strip()
+
+        # 仅响应“签到”关键词
+        if message != "签到":
+            return
+
         user_id = event.get_sender_id()
         if user_id not in self.users:
             self.users[user_id] = {"integral": 0, "last_sign_in": None}
@@ -58,22 +62,31 @@ class IntegralSystem(Star):
         self._save_json(self.users_file, self.users)
         yield event.plain_result(f"签到成功！获得10积分，当前积分：{self.users[user_id]['integral']}")
 
-# ... existing code ...
-
-    @filter.group_member_added()
+    # ✅ 使用 filter.all() 监听群成员变化
+    @filter.all()
     async def member_join(self, event: AstrMessageEvent):
-        """新成员加入群组"""
+        """新成员加入群组：自动检测并奖励邀请人积分"""
+        # 仅处理群成员增加事件
+        if not event.message_obj.type == "group_increase":
+            return
+
+        # 获取邀请人ID（operator_id）
         operator_id = event.message_obj.raw_message.get("operator_id")
-        if operator_id and operator_id != event.get_self_id():
-            if operator_id not in self.users:
-                self.users[operator_id] = {"integral": 0}
-            
-            self.users[operator_id]["integral"] += 20
-            self._save_json(self.users_file, self.users)
-            yield event.send_private(
-                operator_id,
-                f"您邀请的好友已入群，获得20积分！当前积分：{self.users[operator_id]['integral']}"
-            )
+        if not operator_id or operator_id == event.get_self_id():
+            return
+
+        # 给邀请人奖励积分
+        if operator_id not in self.users:
+            self.users[operator_id] = {"integral": 0}
+        
+        self.users[operator_id]["integral"] += 20
+        self._save_json(self.users_file, self.users)
+
+        # 发送私聊通知
+        yield event.send_private(
+            operator_id,
+            f"您邀请的好友已入群，获得20积分！当前积分：{self.users[operator_id]['integral']}"
+        )
 
     @filter.command("exchange")
     async def exchange_api_key(self, event: AstrMessageEvent, product_id: str):
